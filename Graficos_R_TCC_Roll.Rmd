@@ -1,0 +1,971 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+library(xlsx)
+library(tidyverse)
+library(ggthemes)
+library(ggplot2)
+library(readxl)
+library(patchwork)
+library(ggpubr)
+
+Excel_doacoes = readxl::read_excel("Doacoes 2010 - 2014 - R.xlsx")
+
+Excel_PLs = readxl::read_excel("PLs 2011 - 2015 - 2019 - R.xlsx")
+
+Excel_eleitos = readxl::read_excel("Resultados eleitos 2010 - 2014 - 2018 - R.xlsx")
+
+
+
+```{r}
+ggplot(Excel_eleitos,
+        aes(fct_infreq(Eleito),
+        y = ..count../sum(..count..))) +
+  geom_bar() + scale_y_continuous(labels = scales::percent) +
+  labs(x = "",
+      y = "",
+      title = "Quantidade de eleições por candidato
+      ") +
+  theme_economist()
+```
+
+  
+```{r}
+ggplot(Excel_eleitos, 
+       aes(fct_infreq(UF), 
+           fill = Eleito)) + 
+  geom_bar(position = "stack") + coord_flip() +
+  labs(x = "",
+       y = "",
+       title = "Quantidade de eleições de cada candidato por UF") + scale_y_continuous(breaks = seq(0, 150, 25))
+```
+  
+```{r}
+ggplot(Excel_eleitos, 
+       aes(fct_infreq(UF), 
+           fill = Eleito)) + 
+  geom_bar(position = "fill") + scale_y_continuous(breaks = seq(0.0, 1, 0.2)) +
+  labs(x = "",
+       y = "",
+       title = "Quantidade de eleições de cada candidato por UF") + coord_flip() + scale_y_continuous(labels = scales::percent)
+```
+  
+  
+  
+```{r}
+Excel_eleitos_2_3 = Excel_eleitos %>% filter(Eleito %in% c("Duas vezes", "Três vezes"))
+ggplot(Excel_eleitos_2_3, 
+       aes(fct_infreq(UF), 
+           fill = Eleito)) + 
+  geom_bar(position = "stack") +
+  labs(x = "",
+       y = "",
+       title = "Quantidade de reeleitos por UF") + coord_flip() + scale_y_continuous(breaks = seq(0, 50, 5))
+```
+  
+```{r}
+Excel_eleitos_2_3_partido = Excel_eleitos %>% filter(Eleito %in% c("Duas vezes", "Três vezes"), Mudou_de_partido == "Não")
+ggplot(Excel_eleitos_2_3_partido, 
+       aes(fct_infreq(Partido), 
+           fill = Eleito)) + 
+  geom_bar(position = "dodge") +
+  labs(x = "",
+       y = "",
+       title = "Quantidade de eleições de cada candidato por Partido") + coord_flip() + scale_y_continuous(breaks = seq(0, 30, 5))
+```
+  
+  
+```{r}
+Excel_eleitos_3_RJ = Excel_eleitos %>% filter(Eleito == "Três vezes", UF == "RJ")
+Excel_eleitos_3_RJ %>% select(Candidato, Partido, Segundo_partido, Terceiro_partido)
+```
+ 
+#Partido pra segundo planilha (Excel_doacoes)
+ 
+```{r}
+Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+ggplot(aes (fct_infreq(Candidato))) +
+  geom_bar() + coord_flip() + theme_economist() +
+labs(x = "",
+       y = "",
+       title = "Quantidade de doações recebidas por candidato",
+        subtitle = "") +
+  scale_y_continuous(breaks = seq(0,50,10))
+```
+ 
+ 
+```{r}
+Doacoes_Total <- Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA"))
+
+Doacoes_Total %>% 
+ggplot(aes(fct_infreq(Candidato), 
+           fill = Ano)) +
+  geom_bar(position = "Dodge") + #coord_flip() +
+labs(x = "",
+       y = "",
+       title = "Quantidade de doações recebidas por candidato",
+        subtitle = "") +
+  theme_economist_white() +  scale_y_continuous(breaks = seq(0,30,5)) 
+```
+ 
+ 
+ 
+```{r}
+Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+ggplot(aes(x = Candidato , y = Valor/1000, fun = sum(Valor), fill = Ano)) +
+  geom_bar(stat = "identity") + coord_flip() +
+labs(x = "",
+       y = "
+     Reais (sobre mil)",
+       title = "Soma das doações recebidas por candidato",
+        subtitle = "") +
+  theme_economist_white() 
+
+```
+ 
+ 
+```{r}
+Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+ggplot(aes(x = Ano , y = Valor/1000, fun = sum(Valor), fill = Ano)) +
+  geom_bar(stat = "identity") + coord_flip() +
+labs(x = "",
+       y = "
+     Reais (sobre mil)",
+       title = "Soma das doações recebidas por ano",
+        subtitle = "") +
+  theme_economist_white() 
+```
+ 
+ 
+ 
+```{r}
+Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+ggplot(aes (x = Valor/1000, y = Candidato, fill = Candidato)) + geom_boxplot() +
+  scale_x_continuous(breaks = seq(0,1400,200)) + 
+  labs(x = "Reais (sobre mil)",
+       y = "",
+       title = "Valores das doações recebidas por candidato") +theme_classic() 
+
+```
+ 
+ 
+ 
+ 
+```{r}
+Doacoes_original <- Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  mutate(`Doador originario` = fct_recode(`Doador originario`,
+                                          "RJ Refrescos" = "RIO DE JANEIRO REFRESCOS LTDA",
+                                          "R C VIEIRA ENGEN." = "R C VIEIRA ENGENHARIA LTDA",
+                                          "Tractebel Energia" = "TRACTEBEL ENERGIA COMERCIALIZADORA LTDA.",
+                                          "Energia Verde" = "ENERGIA VERDE PRODUÇÃO RURAL LTDA",
+                                          "CHL XLVI Incorp." = "CHL XLVI INCORPORACOES LTDA",
+                                          "César Maia" = "CESAR EPITÁCIO MAIA",
+                                          "PREMAG Constr." = "PREMAG SISTEMA DE CONSTRUÇÕES LTDA",
+                                          "Amil" = "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.",
+                                          "BTG Pactual" = "BANCO BTG PACTUAL S.A.",
+                                          "Queiroz Galvão" = "CONSTRUTORA QUEIROZ GALVÃO S/A",
+                                          "Carioca Engen." = "CARIOCA CHRISTIANI NIELSEN ENGENHARIA S/A",
+                                          "SPIL Serv. de Eng." = "SPIL SERVIÇOS TECNICOS DE ENGENHARIA LTDA",
+                                          "UTC Eng." = "UTC ENGENHARIA S.A.",
+                                          "Banco BMG" = "BANCO BMG S.A.",
+                                          "Avante Veículos" = "AVANTE VEíCULOS LTDA",
+                                          "Cacapava Empreit." = "CACAPAVA EMPREITADA DE LAVOR LTDA",
+                                          "Construtora LPV" = "CONSTRUTOTA LPV LTDA",
+                                          "Itaú" = "ITAÚ UNIBANCO S.A.",
+                                          "Praiamar Indust." = "PRAIAMAR INDÚSTRIA. COMÉRCIO & DISTRIBUIÇÃO LTDA")) %>% 
+  filter(`Doador originario` %in% c("RJ Refrescos", "R C VIEIRA ENGEN.", "Tractebel Energia", "Energia Verde",  "CHL XLVI Incorp.", "César Maia",  "PREMAG Constr.", "Amil", "BTG Pactual", "Queiroz Galvão", "Carioca Engen.", "SPIL Serv. de Eng.", "UTC Eng.", "Banco BMG","Diretório Nacional", "Diretório Estadual/Distrital", "Comitê Financeiro Único","Cacapava Empreit.", "Avante Veículos", "Itaú", "Praiamar Indust."))
+
+Doacoes_original %>% 
+ggplot(aes(x = `Doador originario`, y = Valor/1000, fun = sum(Valor))) +
+  geom_bar(stat = "identity") + coord_flip() +
+labs(x = "",
+       y = "
+Reais (sobre mil)",
+       title = "Doadores acima de 200 mil",
+        subtitle = "") +
+  theme_economist_white() +
+  scale_y_continuous(breaks = seq(200,3500,400)) + geom_hline(yintercept=200, color = "red")
+```
+ 
+ 
+```{r}
+Doacoes_original <- Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  mutate(`Doador originario` = fct_recode(`Doador originario`,
+                                          "RJ Refrescos" = "RIO DE JANEIRO REFRESCOS LTDA",
+                                          "R C VIEIRA ENGEN." = "R C VIEIRA ENGENHARIA LTDA",
+                                          "Tractebel Energia" = "TRACTEBEL ENERGIA COMERCIALIZADORA LTDA.",
+                                          "Energia Verde" = "ENERGIA VERDE PRODUÇÃO RURAL LTDA",
+                                          "CHL XLVI Incorp." = "CHL XLVI INCORPORACOES LTDA",
+                                          "César Maia" = "CESAR EPITÁCIO MAIA",
+                                          "PREMAG Constr." = "PREMAG SISTEMA DE CONSTRUÇÕES LTDA",
+                                          "Amil" = "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.",
+                                          "BTG Pactual" = "BANCO BTG PACTUAL S.A.",
+                                          "Queiroz Galvão" = "CONSTRUTORA QUEIROZ GALVÃO S/A",
+                                          "Carioca Engen." = "CARIOCA CHRISTIANI NIELSEN ENGENHARIA S/A",
+                                          "SPIL Serv. de Eng." = "SPIL SERVIÇOS TECNICOS DE ENGENHARIA LTDA",
+                                          "UTC Eng." = "UTC ENGENHARIA S.A.",
+                                          "Banco BMG" = "BANCO BMG S.A.",
+                                          "Avante Veículos" = "AVANTE VEíCULOS LTDA",
+                                          "Cacapava Empreit." = "CACAPAVA EMPREITADA DE LAVOR LTDA",
+                                          "Construtora LPV" = "CONSTRUTOTA LPV LTDA",
+                                          "Itaú" = "ITAÚ UNIBANCO S.A.",
+                                          "Praiamar Indust." = "PRAIAMAR INDÚSTRIA. COMÉRCIO & DISTRIBUIÇÃO LTDA")) %>% 
+  filter(`Doador originario` %in% c("RJ Refrescos", "R C VIEIRA ENGEN.", "Tractebel Energia", "Energia Verde",  "CHL XLVI Incorp.", "César Maia",  "PREMAG Constr.", "Amil", "BTG Pactual", "Queiroz Galvão", "Carioca Engen.", "SPIL Serv. de Eng.", "UTC Eng.", "Banco BMG","Diretório Nacional", "Diretório Estadual/Distrital", "Comitê Financeiro Único","Cacapava Empreit.", "Avante Veículos", "Itaú", "Praiamar Indust."))
+
+Doacoes_original %>% 
+ggplot(aes(x = `Setor (macro)`, y = Valor/1000, fun = sum(Valor))) +
+  geom_bar(stat = "identity") + coord_flip() +
+labs(x = "",
+       y = "
+Reais (sobre mil)",
+       title = "Doadores acima de 200 mil (por setor macro)",
+        subtitle = "") +
+  theme_economist_white() +
+  scale_y_continuous(breaks = seq(0,6000,700)) + geom_hline(yintercept=200, color = "red")
+```
+ 
+ 
+ 
+```{r}
+Doacoes_original <- Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  mutate(`Doador originario` = fct_recode(`Doador originario`,
+                                          "RJ Refrescos" = "RIO DE JANEIRO REFRESCOS LTDA",
+                                          "R C VIEIRA ENGEN." = "R C VIEIRA ENGENHARIA LTDA",
+                                          "Tractebel Energia" = "TRACTEBEL ENERGIA COMERCIALIZADORA LTDA.",
+                                          "Energia Verde" = "ENERGIA VERDE PRODUÇÃO RURAL LTDA",
+                                          "CHL XLVI Incorp." = "CHL XLVI INCORPORACOES LTDA",
+                                          "César Maia" = "CESAR EPITÁCIO MAIA",
+                                          "PREMAG Constr." = "PREMAG SISTEMA DE CONSTRUÇÕES LTDA",
+                                          "Amil" = "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.",
+                                          "BTG Pactual" = "BANCO BTG PACTUAL S.A.",
+                                          "Queiroz Galvão" = "CONSTRUTORA QUEIROZ GALVÃO S/A",
+                                          "Carioca Engen." = "CARIOCA CHRISTIANI NIELSEN ENGENHARIA S/A",
+                                          "SPIL Serv. de Eng." = "SPIL SERVIÇOS TECNICOS DE ENGENHARIA LTDA",
+                                          "UTC Eng." = "UTC ENGENHARIA S.A.",
+                                          "Banco BMG" = "BANCO BMG S.A.",
+                                          "Avante Veículos" = "AVANTE VEíCULOS LTDA",
+                                          "Cacapava Empreit." = "CACAPAVA EMPREITADA DE LAVOR LTDA",
+                                          "Construtora LPV" = "CONSTRUTOTA LPV LTDA",
+                                          "Itaú" = "ITAÚ UNIBANCO S.A.",
+                                          "Praiamar Indust." = "PRAIAMAR INDÚSTRIA. COMÉRCIO & DISTRIBUIÇÃO LTDA")) %>% 
+  filter(`Doador originario` %in% c("RJ Refrescos", "R C VIEIRA ENGEN.", "Tractebel Energia", "Energia Verde",  "CHL XLVI Incorp.", "César Maia",  "PREMAG Constr.", "Amil", "BTG Pactual", "Queiroz Galvão", "Carioca Engen.", "SPIL Serv. de Eng.", "UTC Eng.", "Banco BMG","Diretório Nacional", "Diretório Estadual/Distrital", "Comitê Financeiro Único","Cacapava Empreit.", "Avante Veículos", "Itaú", "Praiamar Indust."))
+
+Doacoes_original %>% 
+ggplot(aes(x = `Setor (micro)`, y = Valor/1000, fun = sum(Valor))) +
+  geom_bar(stat = "identity") + coord_flip() +
+labs(x = "",
+       y = "
+Reais (sobre mil)",
+       title = "Doadores acima de 200 mil (por setor micro)",
+        subtitle = "") +
+  theme_economist_white() +
+  scale_y_continuous(breaks = seq(0,6000,700)) + geom_hline(yintercept=200, color = "red")
+```
+ 
+ 
+ 
+```{r}
+Doacoes_original <- Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  mutate(`Doador originario` = fct_recode(`Doador originario`,
+                                          "RJ Refrescos" = "RIO DE JANEIRO REFRESCOS LTDA",
+                                          "R C VIEIRA ENGEN." = "R C VIEIRA ENGENHARIA LTDA",
+                                          "Tractebel Energia" = "TRACTEBEL ENERGIA COMERCIALIZADORA LTDA.",
+                                          "Energia Verde" = "ENERGIA VERDE PRODUÇÃO RURAL LTDA",
+                                          "CHL XLVI Incorp." = "CHL XLVI INCORPORACOES LTDA",
+                                          "César Maia" = "CESAR EPITÁCIO MAIA",
+                                          "PREMAG Constr." = "PREMAG SISTEMA DE CONSTRUÇÕES LTDA",
+                                          "Amil" = "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.",
+                                          "BTG Pactual" = "BANCO BTG PACTUAL S.A.",
+                                          "Queiroz Galvão" = "CONSTRUTORA QUEIROZ GALVÃO S/A",
+                                          "Carioca Engen." = "CARIOCA CHRISTIANI NIELSEN ENGENHARIA S/A",
+                                          "SPIL Serv. de Eng." = "SPIL SERVIÇOS TECNICOS DE ENGENHARIA LTDA",
+                                          "UTC Eng." = "UTC ENGENHARIA S.A.",
+                                          "Banco BMG" = "BANCO BMG S.A.",
+                                          "Avante Veículos" = "AVANTE VEíCULOS LTDA",
+                                          "Cacapava Empreit." = "CACAPAVA EMPREITADA DE LAVOR LTDA",
+                                          "Construtora LPV" = "CONSTRUTOTA LPV LTDA",
+                                          "Itaú" = "ITAÚ UNIBANCO S.A.",
+                                          "Praiamar Indust." = "PRAIAMAR INDÚSTRIA. COMÉRCIO & DISTRIBUIÇÃO LTDA")) %>% 
+  filter(`Doador originario` %in% c("RJ Refrescos", "R C VIEIRA ENGEN.", "Tractebel Energia", "Energia Verde",  "CHL XLVI Incorp.",  "PREMAG Constr.", "Amil", "BTG Pactual", "Queiroz Galvão", "Carioca Engen.", "SPIL Serv. de Eng.", "UTC Eng.", "Banco BMG","Cacapava Empreit.", "Avante Veículos", "Itaú", "Praiamar Indust."))
+
+Grafico_macro = Doacoes_original %>% 
+ggplot(aes(x = `Setor (macro)`, y = Valor/1000, fun = sum(Valor), fill = `Setor (micro)`)) +
+  geom_bar(stat = "identity") + coord_flip() + #theme(plot.title = element_text(hjust = 0.5), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+labs(x = "",
+       y = "
+Reais (sobre mil)",
+       title = "Doadores acima de 200 mil (por setor macro x micro)",
+        subtitle = "") +
+  theme_economist_white() +
+  scale_y_continuous(breaks = seq(0,6000,500)) #+ geom_hline(yintercept=200, color = "red")
+Grafico_macro
+```
+ 
+ 
+```{r}
+Doacoes_original <- Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  mutate(`Doador originario` = fct_recode(`Doador originario`,
+                                          "RJ Refrescos" = "RIO DE JANEIRO REFRESCOS LTDA",
+                                          "R C VIEIRA ENGEN." = "R C VIEIRA ENGENHARIA LTDA",
+                                          "Tractebel Energia" = "TRACTEBEL ENERGIA COMERCIALIZADORA LTDA.",
+                                          "Energia Verde" = "ENERGIA VERDE PRODUÇÃO RURAL LTDA",
+                                          "CHL XLVI Incorp." = "CHL XLVI INCORPORACOES LTDA",
+                                          "César Maia" = "CESAR EPITÁCIO MAIA",
+                                          "PREMAG Constr." = "PREMAG SISTEMA DE CONSTRUÇÕES LTDA",
+                                          "Amil" = "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.",
+                                          "BTG Pactual" = "BANCO BTG PACTUAL S.A.",
+                                          "Queiroz Galvão" = "CONSTRUTORA QUEIROZ GALVÃO S/A",
+                                          "Carioca Engen." = "CARIOCA CHRISTIANI NIELSEN ENGENHARIA S/A",
+                                          "SPIL Serv. de Eng." = "SPIL SERVIÇOS TECNICOS DE ENGENHARIA LTDA",
+                                          "UTC Eng." = "UTC ENGENHARIA S.A.",
+                                          "Banco BMG" = "BANCO BMG S.A.",
+                                          "Avante Veículos" = "AVANTE VEíCULOS LTDA",
+                                          "Cacapava Empreit." = "CACAPAVA EMPREITADA DE LAVOR LTDA",
+                                          "Construtora LPV" = "CONSTRUTOTA LPV LTDA",
+                                          "Itaú" = "ITAÚ UNIBANCO S.A.",
+                                          "Praiamar Indust." = "PRAIAMAR INDÚSTRIA. COMÉRCIO & DISTRIBUIÇÃO LTDA")) %>% 
+  filter(`Doador originario` %in% c("RJ Refrescos", "R C VIEIRA ENGEN.", "Tractebel Energia", "Energia Verde",  "CHL XLVI Incorp.",  "PREMAG Constr.", "Amil", "BTG Pactual", "Queiroz Galvão", "Carioca Engen.", "SPIL Serv. de Eng.", "UTC Eng.", "Banco BMG","Cacapava Empreit.", "Avante Veículos", "Itaú", "Praiamar Indust."))
+
+Grafico_micro = Doacoes_original %>% 
+ggplot(aes(x = `Setor (micro)`, y = Valor/1000, fun = sum(Valor), fill = `Setor (macro)`)) +
+  geom_bar(stat = "identity") + coord_flip() + #theme(plot.title = element_text(hjust = 0.0)) +
+labs(x = "",
+       y = "
+Reais (sobre mil)",
+       title = "Doadores acima de 200 mil (por setor micro x macro)",
+        subtitle = "") +
+  theme_economist_white() +
+  scale_y_continuous(breaks = seq(0,6000,500)) #+ geom_hline(yintercept=200, color = "red")
+Grafico_micro
+```
+ 
+ 
+```{r}
+doacoes_100_mais = Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  mutate(`Doador originario` = fct_recode(`Doador originario`,
+                                          "RJ Refrescos" = "RIO DE JANEIRO REFRESCOS LTDA",
+                                          "R C VIEIRA ENGEN." = "R C VIEIRA ENGENHARIA LTDA",
+                                          "Tractebel Energia" = "TRACTEBEL ENERGIA COMERCIALIZADORA LTDA.",
+                                          "Energia Verde" = "ENERGIA VERDE PRODUÇÃO RURAL LTDA",
+                                          "CHL XLVI Incorp." = "CHL XLVI INCORPORACOES LTDA",
+                                          "César Maia" = "CESAR EPITÁCIO MAIA",
+                                          "PREMAG Constr." = "PREMAG SISTEMA DE CONSTRUÇÕES LTDA",
+                                          "Amil" = "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.",
+                                          "BTG Pactual" = "BANCO BTG PACTUAL S.A.",
+                                          "Queiroz Galvão" = "CONSTRUTORA QUEIROZ GALVÃO S/A",
+                                          "Carioca Engen." = "CARIOCA CHRISTIANI NIELSEN ENGENHARIA S/A",
+                                          "SPIL Serv. de Eng." = "SPIL SERVIÇOS TECNICOS DE ENGENHARIA LTDA",
+                                          "UTC Eng." = "UTC ENGENHARIA S.A.",
+                                          "Banco BMG" = "BANCO BMG S.A.",
+                                          "Avante Veículos" = "AVANTE VEíCULOS LTDA",
+                                          "Cacapava Empreit." = "CACAPAVA EMPREITADA DE LAVOR LTDA",
+                                          "Construtora LPV" = "CONSTRUTOTA LPV LTDA",
+                                          "Itaú" = "ITAÚ UNIBANCO S.A.",
+                                          "Praiamar Indust." = "PRAIAMAR INDÚSTRIA. COMÉRCIO & DISTRIBUIÇÃO LTDA",
+                                          "Zammi Instr." = "ZAMMI INSTRUMENTAL LTDA",
+                                          "Talento Constr." = "TALENTO CONSTRUTORA LTDA",
+                                          "Ribeira Imob." = "RIBEIRA EMPREENDIMENTOS IMOBILIARIOS LTDA",
+                                          "Rede D'Or" = "REDE DOR SAO LUIZ AS",
+                                          "Prestaserv" = "PRESTASERV PRESTADORA DE SERVIÇOS LTDA",
+                                          "MTT 500" = "MTT 500 ADMINISTRACAO E PARTICIPAÇÕES LTDA",
+                                          "Limpatech Constr." = "LIMPATECH SERVIÇOS E CONSTRUCOES LTDA",
+                                          "FW Constr." = "FW EMPREENDIMENTOS E CONSTRUÇÕES LTDA",
+                                          "EGL Empreend." = "EGL EMPREENDIMENTOS GERAIS LTDA",
+                                          "Cosan Lubrificantes" = "COSAN LUBRIFICANTES E ESPECIALIDADES S.A.",
+                                          "Copersucar" = "COPERSUCAR S/A",
+                                          "Andrade Gutierrez" = "CONSTRUTORA ANDRADE GUTIERRZ AS",
+                                          "Siderurgica Pindare" = "CIA SIDERURGICA VALE DO PINDARE",
+                                          "CENP Constr." = "CENP-OLIVEIRA CONSTRUTORA E PAVIMENTAÇÃO LTDA")) %>% 
+  filter(`Doador originario` %in% c("RJ Refrescos", "R C VIEIRA ENGEN.", "Tractebel Energia", "Energia Verde",  "CHL XLVI Incorp.",  "PREMAG Constr.", "Amil", "BTG Pactual", "Queiroz Galvão", "Carioca Engen.", "SPIL Serv. de Eng.", "UTC Eng.", "Banco BMG","Cacapava Empreit.", "Avante Veículos", "Itaú", "Praiamar Indust.", "Zammi Instr.", "Talento Constr.", "Ribeira Imob.", "Rede D'Or", "Prestaserv", "MTT 500", "Limpatech Constr.", "FW Constr.",  "EGL Empreend.",  "Cosan Lubrificantes", "Copersucar", "Andrade Gutierrez",  "Siderurgica Pindare",  "CENP Constr."))  
+ggplot(doacoes_100_mais, aes(x = Candidato , y = Valor/1000, fun = sum(Valor))) +
+  geom_bar(stat = "identity", fill = "orange") + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "Soma das doações recebidas por setor (macro) +100K",
+        subtitle = "") +
+  theme_economist() +
+  facet_wrap(~doacoes_100_mais$`Setor (macro)`)
+```
+ 
+ 
+```{r}
+doacoes_100_mais = Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  mutate(`Doador originario` = fct_recode(`Doador originario`,
+                                          "RJ Refrescos" = "RIO DE JANEIRO REFRESCOS LTDA",
+                                          "R C VIEIRA ENGEN." = "R C VIEIRA ENGENHARIA LTDA",
+                                          "Tractebel Energia" = "TRACTEBEL ENERGIA COMERCIALIZADORA LTDA.",
+                                          "Energia Verde" = "ENERGIA VERDE PRODUÇÃO RURAL LTDA",
+                                          "CHL XLVI Incorp." = "CHL XLVI INCORPORACOES LTDA",
+                                          "César Maia" = "CESAR EPITÁCIO MAIA",
+                                          "PREMAG Constr." = "PREMAG SISTEMA DE CONSTRUÇÕES LTDA",
+                                          "Amil" = "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.",
+                                          "BTG Pactual" = "BANCO BTG PACTUAL S.A.",
+                                          "Queiroz Galvão" = "CONSTRUTORA QUEIROZ GALVÃO S/A",
+                                          "Carioca Engen." = "CARIOCA CHRISTIANI NIELSEN ENGENHARIA S/A",
+                                          "SPIL Serv. de Eng." = "SPIL SERVIÇOS TECNICOS DE ENGENHARIA LTDA",
+                                          "UTC Eng." = "UTC ENGENHARIA S.A.",
+                                          "Banco BMG" = "BANCO BMG S.A.",
+                                          "Avante Veículos" = "AVANTE VEíCULOS LTDA",
+                                          "Cacapava Empreit." = "CACAPAVA EMPREITADA DE LAVOR LTDA",
+                                          "Construtora LPV" = "CONSTRUTOTA LPV LTDA",
+                                          "Itaú" = "ITAÚ UNIBANCO S.A.",
+                                          "Praiamar Indust." = "PRAIAMAR INDÚSTRIA. COMÉRCIO & DISTRIBUIÇÃO LTDA",
+                                          "Zammi Instr." = "ZAMMI INSTRUMENTAL LTDA",
+                                          "Talento Constr." = "TALENTO CONSTRUTORA LTDA",
+                                          "Ribeira Imob." = "RIBEIRA EMPREENDIMENTOS IMOBILIARIOS LTDA",
+                                          "Rede D'Or" = "REDE DOR SAO LUIZ AS",
+                                          "Prestaserv" = "PRESTASERV PRESTADORA DE SERVIÇOS LTDA",
+                                          "MTT 500" = "MTT 500 ADMINISTRACAO E PARTICIPAÇÕES LTDA",
+                                          "Limpatech Constr." = "LIMPATECH SERVIÇOS E CONSTRUCOES LTDA",
+                                          "FW Constr." = "FW EMPREENDIMENTOS E CONSTRUÇÕES LTDA",
+                                          "EGL Empreend." = "EGL EMPREENDIMENTOS GERAIS LTDA",
+                                          "Cosan Lubrificantes" = "COSAN LUBRIFICANTES E ESPECIALIDADES S.A.",
+                                          "Copersucar" = "COPERSUCAR S/A",
+                                          "Andrade Gutierrez" = "CONSTRUTORA ANDRADE GUTIERRZ AS",
+                                          "Siderurgica Pindare" = "CIA SIDERURGICA VALE DO PINDARE",
+                                          "CENP Constr." = "CENP-OLIVEIRA CONSTRUTORA E PAVIMENTAÇÃO LTDA")) %>% 
+  filter(`Doador originario` %in% c("RJ Refrescos", "R C VIEIRA ENGEN.", "Tractebel Energia", "Energia Verde",  "CHL XLVI Incorp.",  "PREMAG Constr.", "Amil", "BTG Pactual", "Queiroz Galvão", "Carioca Engen.", "SPIL Serv. de Eng.", "UTC Eng.", "Banco BMG","Cacapava Empreit.", "Avante Veículos", "Itaú", "Praiamar Indust.", "Zammi Instr.", "Talento Constr.", "Ribeira Imob.", "Rede D'Or", "Prestaserv", "MTT 500", "Limpatech Constr.", "FW Constr.",  "EGL Empreend.",  "Cosan Lubrificantes", "Copersucar", "Andrade Gutierrez",  "Siderurgica Pindare",  "CENP Constr."))  
+ggplot(doacoes_100_mais, aes(x = `Setor (macro)` , y = Valor/1000, fun = sum(Valor))) +
+  geom_bar(stat = "identity", fill = "darkblue") + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "Soma das doações recebidas por setor (macro) +100K",
+        subtitle = "") +
+  theme_economist() +
+  facet_wrap(~doacoes_100_mais$Candidato)
+```
+ 
+ 
+ 
+```{r}
+doacoes_100_mais = Doacoes_2010_2014_R %>% 
+  mutate(Candidato = fct_recode(Candidato,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  mutate(`Doador originario` = fct_recode(`Doador originario`,
+                                          "RJ Refrescos" = "RIO DE JANEIRO REFRESCOS LTDA",
+                                          "R C VIEIRA ENGEN." = "R C VIEIRA ENGENHARIA LTDA",
+                                          "Tractebel Energia" = "TRACTEBEL ENERGIA COMERCIALIZADORA LTDA.",
+                                          "Energia Verde" = "ENERGIA VERDE PRODUÇÃO RURAL LTDA",
+                                          "CHL XLVI Incorp." = "CHL XLVI INCORPORACOES LTDA",
+                                          "César Maia" = "CESAR EPITÁCIO MAIA",
+                                          "PREMAG Constr." = "PREMAG SISTEMA DE CONSTRUÇÕES LTDA",
+                                          "Amil" = "AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.",
+                                          "BTG Pactual" = "BANCO BTG PACTUAL S.A.",
+                                          "Queiroz Galvão" = "CONSTRUTORA QUEIROZ GALVÃO S/A",
+                                          "Carioca Engen." = "CARIOCA CHRISTIANI NIELSEN ENGENHARIA S/A",
+                                          "SPIL Serv. de Eng." = "SPIL SERVIÇOS TECNICOS DE ENGENHARIA LTDA",
+                                          "UTC Eng." = "UTC ENGENHARIA S.A.",
+                                          "Banco BMG" = "BANCO BMG S.A.",
+                                          "Avante Veículos" = "AVANTE VEíCULOS LTDA",
+                                          "Cacapava Empreit." = "CACAPAVA EMPREITADA DE LAVOR LTDA",
+                                          "Construtora LPV" = "CONSTRUTOTA LPV LTDA",
+                                          "Itaú" = "ITAÚ UNIBANCO S.A.",
+                                          "Praiamar Indust." = "PRAIAMAR INDÚSTRIA. COMÉRCIO & DISTRIBUIÇÃO LTDA",
+                                          "Zammi Instr." = "ZAMMI INSTRUMENTAL LTDA",
+                                          "Talento Constr." = "TALENTO CONSTRUTORA LTDA",
+                                          "Ribeira Imob." = "RIBEIRA EMPREENDIMENTOS IMOBILIARIOS LTDA",
+                                          "Rede D'Or" = "REDE DOR SAO LUIZ AS",
+                                          "Prestaserv" = "PRESTASERV PRESTADORA DE SERVIÇOS LTDA",
+                                          "MTT 500" = "MTT 500 ADMINISTRACAO E PARTICIPAÇÕES LTDA",
+                                          "Limpatech Constr." = "LIMPATECH SERVIÇOS E CONSTRUCOES LTDA",
+                                          "FW Constr." = "FW EMPREENDIMENTOS E CONSTRUÇÕES LTDA",
+                                          "EGL Empreend." = "EGL EMPREENDIMENTOS GERAIS LTDA",
+                                          "Cosan Lubrificantes" = "COSAN LUBRIFICANTES E ESPECIALIDADES S.A.",
+                                          "Copersucar" = "COPERSUCAR S/A",
+                                          "Andrade Gutierrez" = "CONSTRUTORA ANDRADE GUTIERRZ AS",
+                                          "Siderurgica Pindare" = "CIA SIDERURGICA VALE DO PINDARE",
+                                          "CENP Constr." = "CENP-OLIVEIRA CONSTRUTORA E PAVIMENTAÇÃO LTDA")) %>% 
+  filter(`Doador originario` %in% c("RJ Refrescos", "R C VIEIRA ENGEN.", "Tractebel Energia", "Energia Verde",  "CHL XLVI Incorp.",  "PREMAG Constr.", "Amil", "BTG Pactual", "Queiroz Galvão", "Carioca Engen.", "SPIL Serv. de Eng.", "UTC Eng.", "Banco BMG","Cacapava Empreit.", "Avante Veículos", "Itaú", "Praiamar Indust.", "Zammi Instr.", "Talento Constr.", "Ribeira Imob.", "Rede D'Or", "Prestaserv", "MTT 500", "Limpatech Constr.", "FW Constr.",  "EGL Empreend.",  "Cosan Lubrificantes", "Copersucar", "Andrade Gutierrez",  "Siderurgica Pindare",  "CENP Constr."))  
+ggplot(doacoes_100_mais, aes(x = Candidato , y = Valor/1000, fun = sum(Valor), fill = `Setor (macro)`)) +
+  geom_bar(stat = "identity") + coord_flip() +
+labs(x = "",
+       y = "
+     Reais (sobre mil)",
+       title = "Soma das doações recebidas por setor (macro) +100K",
+        subtitle = "") +
+  theme_economist_white()
+   
+```
+ 
+ 
+
+  
+#Partindo para a última planilha (Excel_PLs)
+#Excel_PLs %>% as.character(Excel_PLs$Ano)
+
+```{r}
+PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+ggplot(aes (fct_infreq(Deputado), fill = Ano)) +
+  geom_bar() + coord_flip() + theme_economist() +
+labs(x = "",
+       y = "",
+       title = "Quantidade de PLs apresentados por candidato",
+        subtitle = "") +
+  scale_y_continuous(breaks = seq(0,60,10))
+```
+
+
+```{r}
+PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+ggplot(aes (x = Ano,  y = ..count../sum(..count..), fill = Ano)) + scale_y_continuous(labels = scales::percent) +
+  geom_bar() +
+labs(x = "",
+       y = "",
+       title = "Quantidade de PLs apresentados por ano",
+        subtitle = "") +
+  theme_economist() 
+```
+
+
+
+```{r}
+`%notin%` <- Negate(`%in%`)
+PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% filter(`Setor (macro)` %notin% c ("Segurança pública", "Segurança privada", "Religião", "Privatizações", "LGPD", "Inadimplência", "Crédito rural", "Compras públicas", "Cinematográfico/Telecomunicações", "Servidor público", "Racial", "N/A", "Financeiro", "Aposentadoria")) %>% 
+ggplot(aes (fct_infreq(`Setor (macro)`))) +
+  geom_bar() + coord_flip() + theme_economist() +
+labs(x = "",
+       y = "",
+       title = "PLs apresentados por setor (macro)",
+        subtitle = "") +
+  scale_y_continuous(breaks = seq(3,40,3)) + geom_hline(yintercept=3, color = "red")
+```
+
+
+```{r}
+PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% filter(`Setor (micro)` %notin% c ("Transportadores", "Provedores de internet", "Programa de fidelidade", "Portuários", "Organizações Sociais", "Fabricante de calçados", "Aeroportuário", "Transparência", "Seguros", "Publicidade e/ou Comércio de armas", "Publicidade", "Pescador", "N/A", "Imobiliário", "Energia", "Criptomoedas", "Ciclismo", "Animais domésticos")) %>% 
+ggplot(aes (fct_infreq(`Setor (micro)`))) +
+  geom_bar() + coord_flip() + theme_economist() +
+labs(x = "",
+       y = "",
+       title = "PLs apresentados por setor (micro)",
+        subtitle = "") +
+  scale_y_continuous(breaks = seq(3,40,3)) + geom_hline(yintercept=3, color = "red")
+```
+
+
+
+```{r}
+PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% filter(`Setor (macro)` %notin% c ("Segurança pública", "Segurança privada", "Religião", "Privatizações", "LGPD", "Inadimplência", "Crédito rural", "Compras públicas", "Cinematográfico/Telecomunicações", "Servidor público", "Racial", "N/A", "Financeiro", "Aposentadoria")) %>% 
+ggplot(aes (fct_infreq(`Setor (macro)`), fill = Deputado)) +
+  geom_bar() + coord_flip() + theme_economist() +
+labs(x = "",
+       y = "",
+       title = "PLs apresentados por setor (macro)",
+        subtitle = "") +
+  scale_y_continuous(breaks = seq(3,40,3))
+```
+
+
+
+```{r}
+PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% filter(`Setor (micro)` %notin% c ("Transportadores", "Provedores de internet", "Programa de fidelidade", "Portuários", "Organizações Sociais", "Fabricante de calçados", "Aeroportuário", "Transparência", "Seguros", "Publicidade e/ou Comércio de armas", "Publicidade", "Pescador", "N/A", "Imobiliário", "Energia", "Criptomoedas", "Ciclismo", "Animais domésticos", "Outros")) %>% 
+ggplot(aes (fct_infreq(`Setor (micro)`), fill = Deputado)) +
+  geom_bar() + coord_flip() + theme_economist() +
+labs(x = "",
+       y = "",
+       title = "PLs apresentados por setor (micro)",
+        subtitle = "") +
+  scale_y_continuous(breaks = seq(3,40,3))
+```
+
+
+```{r}
+PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  filter(`Setor (macro)` %in% c ("Ambiental", "Comercial e Consumidor", "Saúde", "Financeiro")) %>% 
+ggplot(aes (fct_infreq(Deputado), fill = `Setor (macro)`)) +
+  geom_bar() + coord_flip() + theme_economist() +
+labs(x = "",
+       y = "",
+       title = "PLs apresentados por setores dos maiores doadores",
+        subtitle = "") +
+  scale_y_continuous(breaks = seq(0,30,2))
+```
+
+
+
+```{r}
+PLs_por_candidato = PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  filter(`Setor (micro)` %in% c("Alimentos e bebidas", "Automobilístico", "Financeiro e grandes fortunas", "Indústrias e mineradoras", "Rede hospitalar e farmácias", "Telecomunicações", "Trânsito e DETRAN")) 
+
+ggplot(PLs_por_candidato, aes(`Setor (micro)`)) +
+  geom_bar(fill = "darkblue") + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "PLs por setor (micro) e parlamentar",
+        subtitle = "") +
+  theme_economist() +
+  facet_wrap(~PLs_por_candidato$Deputado)
+```
+
+```{r}
+PLs_aureo = PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  filter(`Deputado` == "Aureo") #, 'Setor (micro)' %notin% c('Outros')) 
+
+ggplot(PLs_aureo, aes(fct_infreq(`Setor (micro)`), fill = Ano)) +
+  geom_bar() + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "PLs Aureo por setor (micro)",
+        subtitle = "") +
+  theme_economist() + scale_y_continuous(breaks = seq(0,10,1))
+```
+
+```{r}
+PLs_molon = PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  filter(`Deputado` == "Molon") 
+
+ggplot(PLs_molon, aes(fct_infreq(`Setor (micro)`), fill = Ano)) +
+  geom_bar() + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "PLs Molon por setor (micro)",
+        subtitle = "") +
+  theme_economist() + scale_y_continuous(breaks = seq(0,6,1))
+```
+
+
+```{r}
+PLs_benedita = PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  filter(`Deputado` == "Benedita") 
+
+ggplot(PLs_benedita, aes(fct_infreq(`Setor (micro)`), fill = Ano)) +
+  geom_bar() + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "PLs Benedita por setor (micro)",
+        subtitle = "") +
+  theme_economist() + scale_y_continuous(breaks = seq(0,6,1))
+```
+
+
+```{r}
+PLs_glauber = PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  filter(`Deputado` == "Glauber") 
+
+ggplot(PLs_glauber, aes(fct_infreq(`Setor (micro)`), fill = Ano)) +
+  geom_bar() + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "PLs Glauber por setor (micro)",
+        subtitle = "") +
+  theme_economist() + scale_y_continuous(breaks = seq(0,6,1))
+```
+
+
+```{r}
+PLs_hugo = PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  filter(`Deputado` == "Hugo") 
+
+ggplot(PLs_hugo, aes(fct_infreq(`Setor (micro)`), fill = Ano)) +
+  geom_bar() + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "PLs Hugo por setor (micro)",
+        subtitle = "") +
+  theme_economist() + scale_y_continuous(breaks = seq(0,15,1))
+```
+
+
+```{r}
+PLs_jandira = PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  filter(`Deputado` == "Jandira") 
+
+ggplot(PLs_jandira, aes(fct_infreq(`Setor (micro)`), fill = Ano)) +
+  geom_bar() + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "PLs Jandira por setor (micro)",
+        subtitle = "") +
+  theme_economist() + scale_y_continuous(breaks = seq(0,15,1))
+```
+
+
+```{r}
+PLs_pedro_paulo = PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  filter(`Deputado` == "Pedro Paulo") 
+
+ggplot(PLs_pedro_paulo, aes(fct_infreq(`Setor (micro)`), fill = Ano)) +
+  geom_bar() + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "PLs Pedro Paulo por setor (micro)",
+        subtitle = "") +
+  theme_economist() + scale_y_continuous(breaks = seq(0,15,1))
+```
+
+
+```{r}
+PLs_maia = PLs_2011_2015_2019_R %>% 
+  mutate(Deputado = fct_recode(Deputado,
+                                "Benedita" = "BENEDITA SOUZA DA SILVA SAMPAIO",
+                                "Glauber" = "GLAUBER DE MEDEIROS BRAGA",
+                                "Aureo" = "AUREO LIDIO MOREIRA RIBEIRO",
+                                "Hugo" = "HUGO LEAL MELO DA SILVA",
+                                "Molon" = "ALESSANDRO LUCCIOLA MOLON",
+                                "Pedro Paulo" = "PEDRO PAULO CARVALHO TEIXEIRA",
+                                "Jandira" = "JANDIRA FEGHALI",
+                                "Maia" = "RODRIGO FELINTO IBARRA EPITACIO MAIA")) %>% 
+  filter(`Deputado` == "Maia") 
+
+ggplot(PLs_maia, aes(fct_infreq(`Setor (micro)`), fill = Ano)) +
+  geom_bar() + coord_flip() +
+labs(x = "",
+       y = "",
+       title = "PLs Maia por setor (micro)",
+        subtitle = "") +
+  theme_economist() + scale_y_continuous(breaks = seq(0,15,1))
+```
+
